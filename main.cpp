@@ -1,38 +1,130 @@
 #include <iostream>
 
+#include "linked_list.hpp"
+using IntList = List<int>;
 
-template<typename Functor>
-void invert_bits_masked(char *bytes, size_t num_bytes, Functor ith_byte_mask) {
-	for (size_t i = 0; i < num_bytes; ++i) {
-		bytes[i] ^= ith_byte_mask(i);
-	}
+
+#include "utest.h"
+
+
+UTEST(list, front_and_back) {
+	IntList a{ 1, 2 };
+	IntList b{ 2, 3 };
+	a.InsertBack(3);
+	b.InsertFront(1);
+	ASSERT_TRUE(a.Equals(b));
+}
+UTEST(list, insert_back) {
+	IntList a{ 1, 2, 3, 4, 5 };
+	IntList b;
+	b.InsertBack(1);
+	b.InsertBack(2);
+	b.InsertBack(3);
+	b.InsertBack(4);
+	b.InsertBack(5);
+	ASSERT_TRUE(a.Equals(b));
+}
+UTEST(list, insert_front) {
+	IntList a{ 5, 4, 3, 2, 1 };
+	IntList b;
+	b.InsertFront(1);
+	b.InsertFront(2);
+	b.InsertFront(3);
+	b.InsertFront(4);
+	b.InsertFront(5);
+	ASSERT_TRUE(a.Equals(b));
+}
+UTEST(list, remove_front) {
+	IntList a{ 1, 2, 3, 4, 5 };
+	IntList b{ 3, 4, 5 };
+	a.RemoveFront();
+	a.RemoveFront();
+	ASSERT_TRUE(b.Equals(a));
 }
 
-template<typename Iterator>
-void invert_bits_at_positions(char *bytes, size_t num_bytes, Iterator begin, Iterator end) {
-	for (Iterator it = begin; it < end; ++it) {
-		size_t bit_idx = *it;
-		size_t byte_idx = bit_idx >> 3;
-		if (byte_idx < num_bytes) {
-			bytes[byte_idx] ^= 1 << (bit_idx & 7);
-		}
-	}
+UTEST(list, remove_back) {
+	IntList a{ 1, 2, 3, 4, 5 };
+	IntList b{ 1, 2, 3 };
+	a.RemoveBack();
+	a.RemoveBack();
+	ASSERT_TRUE(b.Equals(a));
+}
+UTEST(list, remove_back_all) {
+	IntList a{ 1, 2, 3 };
+	IntList b{};
+	a.RemoveBack();
+	a.RemoveBack();
+	a.RemoveBack();
+	ASSERT_TRUE(b.Equals(a));
 }
 
-void invert_bits_at_positions(char *bytes, size_t num_bytes, std::initializer_list<size_t> il) {
-	invert_bits_at_positions(bytes, num_bytes, il.begin(), il.end());
+UTEST(list, remove_front_all) {
+	IntList a{ 1, 2, 3 };
+	IntList b{};
+	a.RemoveFront();
+	a.RemoveFront();
+	a.RemoveFront();
+	ASSERT_TRUE(b.Equals(a));
 }
 
-int main(int argc, char **argv) {
-	char example[] = "Helmg, World)";
-	size_t num_bytes = sizeof(example) - 1;
-	
-	invert_bits_masked(example, num_bytes, [](auto i) { return 0xff; });
-	invert_bits_masked(example, num_bytes, [](auto i) { return 0x0f; });
-	invert_bits_masked(example, num_bytes, [](auto i) { return 0xf0; });
-	
-	invert_bits_at_positions(example, num_bytes, { 35, 24, 99 });
 
-	// prints "Hello, World!"
-	std::cout << example;
+UTEST(list, remove_all_then_insert) {
+	IntList a{ 1, 2, 3 };
+	a.RemoveFront();
+	a.RemoveFront();
+	a.RemoveFront();
+	a.InsertBack(5);
+	a.InsertBack(6);
+	a.InsertFront(4);
+	IntList b{4, 5, 6};
+	ASSERT_TRUE(b.Equals(a));
 }
+
+
+
+
+UTEST(list, insert_empty) {
+	IntList a{};
+	IntList b{};
+	a.InsertBack(111);
+	b.InsertFront(111);
+	ASSERT_TRUE(b.Equals(a));
+	a.InsertBack(222);
+	b.InsertBack(222);
+	ASSERT_TRUE(b.Equals(a));
+
+}
+UTEST(list, find_and_remove_beginning) {
+	IntList a{ 1, 2, 3 };
+	auto *p = a.Find(1);
+	a.Remove(p);
+	IntList b{ 2, 3 };
+	ASSERT_TRUE(b.Equals(a));
+}
+UTEST(list, find_and_remove_end) {
+	IntList a{ 1, 2, 3 };
+	auto *p = a.Find(3);
+	a.Remove(p);
+	IntList b{ 1, 2 };
+	ASSERT_TRUE(b.Equals(a));
+}
+UTEST(list, find_and_remove_middle) {
+	IntList a{ 1, 2, 3 };
+	auto *p = a.Find(2);
+	a.Remove(p);
+	IntList b{ 1, 3 };
+	ASSERT_TRUE(b.Equals(a));
+}
+
+
+
+#include "tokenizer.hpp"
+UTEST(tokenizer, simple) {
+	std::string example = "max(10, 20) * unknown / (111 * 2)";
+	auto tokens = Tokenize(example);
+	ASSERT_EQ(tokens.size(), 14);
+}
+
+
+
+UTEST_MAIN()
